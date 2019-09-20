@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Kafka-Node</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+<script>
+  var isGasOn=false;
+  var isTempOn=false;
+  var isHumOn=false;
+  var isSoundOn=false;
+  var topic;
+  var data = {"topic":topic, "status":null};
+  $(document).ready(function() {
+    $('#temp').click(function() {
+      if(isTempOn){
+        data.topic="temperature";
+        data.status="on";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        isTempOn=false;
+      }
+      else{
+        data.topic="temperature";
+        data.status="off";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        
+        isTempOn=true;
+      }
+    }); // end of temp click
+
+    $('#gas').click(function() {
+      if(isGasOn){
+        data.topic="gas";
+        data.status="on";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        isGasOn=false;
+      }
+      else{
+        data.topic="gas";
+        data.status="off";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        isGasOn=true;
+        
+      }
+    }); //end of gas click
+
+    $('#hum').click(function() {
+      if(isHumOn){
+        data.topic="humidity";
+        data.status="on";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        isHumOn=false;
+      }
+      else{
+        data.topic="humidity";
+        data.status="off";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        isHumOn=true;
+      }
+    }); //end of humidity click
+
+    $('#sound').click(function() {
+      if(isSoundOn){
+        data.topic="sound";
+        data.status="on";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        isSoundOn=false;
+      }
+      else{
+        data.topic="sound";
+        data.status="off";
+        $.ajax({
+          type: 'POST',
+          url: "http://localhost:2000/" + 'api2',
+          data: data,
+        })
+        isSoundOn=true;
+        
+      }
+    }); //end of sound click
+  }); //end of ready document
+</script>
+<script>
+  var TempData =[];
+  var HumData = [];
+  var SoundData = [];
+  var GasData = [];
+  var x=0;
+  var w=0;
+  for (var i = 0; i < 10; i++) {
+    TempData.push({x: 0, y: 0});
+    SoundData.push({x: 0, y: 0});
+    GasData.push({x: 0, y: 0});
+    HumData.push({x: 0, y: 0});
+  }
+  setInterval(function(){
+    //console.log("Good")
+    $.ajax({
+        type: 'GET',
+        url: "http://localhost:2000/" + 'api',
+        success: function (result) {
+          //data = '{"topic":dknjhi,"values":hfud}';
+          //console.log("Here are the response in json format11: " + result);
+          //console.log(typeof result);
+          var json_obj = JSON.parse(result);
+          
+          //here result becomes JSON
+          //console.log("Here are the response in json format: " + json_obj);
+          //console.log(typeof json_obj);
+          //console.log("result['']: " + json_obj.values);                            
+          // $('#tmp').empty();
+          // $('#hum').empty();
+          // $('#tmp').append(json_obj['values']);
+          // $('#hum').append(''+json_obj['humidity']+'%');
+          //console.log(typeof json_obj['values']);
+          //d = new Date();
+          console.log(json_obj['value']);
+          if (json_obj['topic']=="gas"){
+            GasData.push({x: x, y: parseInt(json_obj['value'])});
+            GasData.shift();
+          }
+          else if(json_obj['topic']=="temperature"){
+            TempData.push({x: x, y: parseInt(json_obj['value'])});
+            TempData.shift();
+          }
+          else if(json_obj['topic']=="sound"){
+            SoundData.push({x: x, y: parseInt(json_obj['value'])});
+            SoundData.shift();
+          }
+          else if(json_obj['topic']=="humidity"){
+            HumData.push({x: x, y: parseInt(json_obj['value'])});
+            HumData.shift();
+          }
+          x++;
+          //d.stepUp();
+          var chart = new CanvasJS.Chart("temp_chart", {
+          animationEnabled: true,
+          theme: "light3",
+          title:{
+            text: "Temperature Sensor"
+          },
+          axisY:{
+            includeZero: false
+          },
+          data: [{        
+            type: "spline",       
+            dataPoints: TempData
+          }]
+        });
+
+        chart.render();
+        var chart = new CanvasJS.Chart("sound_chart", {
+          animationEnabled: true,
+          theme: "light3",
+          title:{
+            text: "Sound Sensor"
+          },
+          axisY:{
+            includeZero: false
+          },
+          data: [{        
+            type: "spline",       
+            dataPoints: SoundData
+          }]
+        });
+        chart.render();
+        var chart = new CanvasJS.Chart("gas_chart", {
+          animationEnabled: true,
+          theme: "light3",
+          title:{
+            text: "Gas Sensor"
+          },
+          axisY:{
+            includeZero: false
+          },
+          data: [{        
+            type: "spline",       
+            dataPoints: GasData
+          }]
+        });
+        chart.render();
+        var chart = new CanvasJS.Chart("hum_chart", {
+          animationEnabled: true,
+          
+          theme: "light3",
+          title:{
+            text: "Humidity"
+          },
+          axisY:{
+            includeZero: false
+          },
+          data: [{        
+            type: "spline",       
+            dataPoints: HumData
+          }]
+        });
+        chart.render();
+        } 
+
+    });
+  }, 5000); /* time in milliseconds (ie 4 seconds)*/
+</script>
+<style>
+body {
+  /*background-color: rgb(26, 26, 26);*/
+  /*background-image: url(https://thumbs.dreamstime.com/b/thin-line-internet-things-white-seamless-pattern-vector-web-design-background-trendy-modern-style-technology-63926586.jpg);*/
+  /*text-align: center;*/
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+}
+
+#btn {
+  color: rgb(37, 37, 37)
+}
+
+    #hum,#tmp{
+        font-size:17px;
+    }
+
+body::after {
+  content: "";
+  background: url(https://thumbs.dreamstime.com/b/thin-line-internet-things-white-seamless-pattern-vector-web-design-background-trendy-modern-style-technology-63926586.jpg);
+  background-repeat: repeat;
+  opacity: 0.19;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;   
+}
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+</style>
+</head>
+<body>
+  <div class="row">
+    <img class="col-3" src="http://www.psu.edu.sa/_Layouts/15/PSU/Design/en/images/nodata.png" alt="PSU Logo" style="width:auto;max-width: 25%; margin-left: 25px; margin-top: 25px; display:inline-block;">
+        <h1 class="col-9" style="text-align: center; color: #14416D;width: 75%; display:inline-block;">Temperature and Humidity</h1>
+
+  </div>
+    <!-- <img src="http://riotu.psu.edu.sa/images/riotu-logo-w.png" alt="RIOTU Logo" style="background-color: currentColor;width:auto; padding-left:15px"> -->
+    <br>
+    <!-- <img src="http://www.myatcapp.com/awslive/image/temperature.png" alt="Temperature" style="width:200px"> -->
+    <div style="float:left; height: 370px;margin-left:30px; width: 40%; border-radius: 30px; border-color: #14416D;">
+      <div id="temp_chart" ></div>
+      <label class="switch">
+        <input checked id="temp" type="checkbox">
+        <span class="slider round"></span>
+      </label>
+  </div>
+  
+    <div style="float:right; height: 370px;margin-right: 30px; width: 40%; border-radius: 30px; border-color: #14416D;">
+      <div id="sound_chart" ></div>
+      <label class="switch">
+        <input checked id="sound" type="checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <div style="float:left; height: 370px;margin-left:30px; width: 40%; border-radius: 30px; margin-top: 30px; border-color: #14416D;">
+      <div id="hum_chart" ></div>
+      <label class="switch">
+        <input checked id="hum" type="checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    
+    
+    <div style="float:right; height: 370px;margin-right: 30px; width: 40%; border-radius: 30px;margin-top: 30px; border-color: #14416D;">
+      <div id="gas_chart" ></div>
+      <label class="switch">
+        <input checked id="gas" type="checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <!-- <button id="gas">he</button> -->
+</body>
+
+</html>
